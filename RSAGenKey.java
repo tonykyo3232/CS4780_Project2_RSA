@@ -9,6 +9,7 @@
 
 
 /*
+
 * user enter k:
 1. based on k, find p and q that are 2 random prime numbers in range [2, 2^k]
 2. calculate n
