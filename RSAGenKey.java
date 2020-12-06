@@ -7,32 +7,27 @@
 * If only one argument k is given, the program randomly picks p and q in k bits and generates a key pair.
 ****************************************************/
 
-
 /*
-
-* user enter k:
-1. based on k, find p and q that are 2 random prime numbers in range [2, 2^k]
-2. calculate n
-3. calculate ø(n)
-4. find e , where e needs to satisfy gcd(ø(n),e)=1; 1<e<ø(n)
-5. find d, where d=e^-1 mod ø(n)
-
-* user enter p, q, e:
-1. set p
-2. set q
-3. set e
-4. calculate  n
-5. calculate  ø(n)
-6. calculate d
-
-* write (e,n) and (e,d) into 2 .txt files
-
+	Instruction:
+	Your program, "RSAGenKey.java", either takes the key size as input or  take input as p, q, and e.
+	If  only one argument k is given, the program randomly picks p and q in k bits and generates a key pair. 
+	For example: c:\> java  RSAGenKey 12
+	Two files will be created.: pub_key.txt and pri_key.txt. pub_key.txt contains a public key in the following format:
+	e = 8311
+	n = 31005883
+	pri_key.txt contains the corresponding private key in the following format:
+	d = 11296191
+	n = 31005883
+	
+	If the program takes p, q, and e as the input (java RSAGenKey p q e), it should generate the corresponding private key. 
+	The key pair should also be saved in two files as described above. For example:
+	c:\> java RSAGenKey 6551 4733 8311
+	The same files pub_key.txt and pri_key.txt should be created.
 */
-
 
 import java.io.*; // file IO and IOException
 import java.util.Random; // random nunmber 
-import java.lang.Math;
+import java.math.BigInteger;
 
 public class RSAGenKey {
 
@@ -56,59 +51,40 @@ public class RSAGenKey {
 	*/
 	private static void genKey_1(int k) throws IOException{
 
-        Random rand = new Random(); 
-  		
-  		int max = (int) Math.pow(2,k);
-  		int min = 2;
-  		
-		// Generate random integers in range 2 to 2^k
-        int p = rand.nextInt(max - min) + min; 
-        int q = rand.nextInt(max - min) + min;
+		// find p and q
+		Random rand = new Random(); 		       
+		BigInteger p = BigInteger.probablePrime(k, rand);
+		BigInteger q = BigInteger.probablePrime(k, rand);
 
-  		while(isPrime(p) == false || isPrime(q) == false){
-	        p = rand.nextInt(max - min) + min; 
-	        q = rand.nextInt(max - min) + min;
+		// calculate n
+		BigInteger n = p.multiply(q);
 
-	        // debug
-	        // System.out.println("p is: " + p);
-	        // System.out.println("q is: " + q);
-  		}
+		// calculate ø(n)
+		BigInteger one = new BigInteger("1");
+		p = p.subtract(one);
+		q = q.subtract(one);
+		BigInteger phi_n = p.multiply(q);
 
-	   	int n = p * q;
-	   	int phi_n = (p-1) * (q-1);
-	   	int e = 2; // default value for smallest prime
-	   	while (e < phi_n) { 
-	        if (gcd(e, phi_n) == 1){
-	        	break;
-	        } 
-	        else{
-	            e++; 
-	        }
-	    }
+		// calculate e
+		BigInteger e = new BigInteger("2");
+		while(e.compareTo(phi_n) == -1){
+			if(one.equals(e.gcd(phi_n))){
+				break;
+			}
+			else{
+				e = e.add(one);
+			}
+		}
 
-	    int d = modular_inverse(e,phi_n);
-	    if(d == -1){
-	    	System.out.println("weird...");
-	    }
+		// calculate d
+		BigInteger d = e.modInverse(phi_n);
 
-	    // debug
-	    System.out.println("--------------------------");
-	    System.out.println("k is:" + k);
-	    System.out.println("p is:" + p);
-	    System.out.println("q is:" + q);
-	    System.out.println("n is:" + n);
-	    System.out.println("ø(n) is:" + phi_n);
-	    System.out.println("e is:" + e);
-	    System.out.println("d is:" + d);
-	    System.out.println("--------------------------");
-
-	    String output_public = "e = " + e + "\nn = " + n;
-	    String output_private = "e = " + e + "\nd = " + d;
+	    String output_public = "e = " + e.toString() + "\nn = " + n.toString();
+	    String output_private = "d = " + d.toString() + "\nn = " + n.toString();
 
 	    // write the output files
 		writeFile("pub_key.txt", output_public);
 		writeFile("pri_key.txt", output_private);
-
 	}
 
 	/*
@@ -120,93 +96,52 @@ public class RSAGenKey {
 		- calculate  ø(n)
 		- calculate d
 	*/
-	private static void genKey_2(int p,int q, int e) throws IOException{
+	private static void genKey_2(String p_str,String q_str, String e_str) throws IOException{
 
-		int n = p * q;
-	   	int phi_n = (p-1) * (q-1);
-		int d = modular_inverse(e,phi_n);
-	    if(d == -1){
-	    	System.out.println("weird...");
-	    }
+		// set p and q
+		BigInteger p = new BigInteger(p_str);
+		BigInteger q = new BigInteger(q_str);
 
-	    // debug
-	    System.out.println("--------------------------");
-	    System.out.println("p is:" + p);
-	    System.out.println("q is:" + q);
-	    System.out.println("n is:" + n);
-	    System.out.println("ø(n) is:" + phi_n);
-	    System.out.println("e is:" + e);
-	    System.out.println("d is:" + d);
-	    System.out.println("--------------------------");
+		// calculate n
+		BigInteger n = p.multiply(q);
 
-	    String output_public = "e = " + e + "\nn = " + n;
-	    String output_private = "e = " + e + "\nd = " + d;
+		// calculate ø(n)
+		BigInteger one = new BigInteger("1");
+		p = p.subtract(one);
+		q = q.subtract(one);
+		BigInteger phi_n = p.multiply(q);
+
+		// set e
+		BigInteger e = new BigInteger(e_str);
+
+		// calculate d
+		BigInteger d = e.modInverse(phi_n);
+
+	    String output_public = "e = " + e_str + "\nn = " + n.toString();
+	    String output_private = "d = " + d.toString() + "\nn = " + n.toString();
 
 	    // write the output files
 		writeFile("pub_key.txt", output_public);
 		writeFile("pri_key.txt", output_private);
 	}
 
-	// helper function - Euclidean Algorithm
-	private static int gcd(int num1, int num2){
-		int r1 = num1,
-			r2 = num2,
-			q = 0,
-			r = 0;
-
-		while(r2 > 0){
-			q = r1/r2;
-			r = r1-q*r2;
-			r1 = r2;
-			r2 = r;
-		}
-		return r1;
-	}
-
-	// helper function - isPrime
-	private static boolean isPrime(int num){
-	    
-	    if (num <= 1)
-	        return false;
-	 
-	    for (int i = 2; i < num; i++)
-	        if (num % i == 0)
-	            return false;
-	 
-	    return true;
-	}
-
-	// helper function - Modular Inverses
-	// num1 should always greater than num2
-	private static int modular_inverse(int num1, int num2){
-
-		// first check gcd
-		if(gcd(num1, num2) != 1){
-			return -1;
-		}
-
-		int mod_num = 1;
-		while((num1 * mod_num) % num2 != 1){
-			mod_num++;
-		}
-		return mod_num;
-	}
-
 	public static void main(String[] args) throws IOException {
-		
-		int option = 0;
 
 		// when user enters k
 		if(args.length == 1){
 			genKey_1(Integer.parseInt(args[0]));
+			System.out.println("Key generated...");
 		}
 		// when user enters p,q and e
 		else if(args.length == 3){
-			genKey_2(Integer.parseInt(args[0]),Integer.parseInt(args[1]),Integer.parseInt(args[2]));
+			genKey_2(args[0], args[1], args[2]);
+			System.out.println("Key generated...");
 		}
 		// invalid input
 		else{
 			// exception
+			System.out.println("Invalid arguement for RSAGenKey!");	
+			System.exit(0);
 		}
 	}
 }

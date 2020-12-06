@@ -1,0 +1,11 @@
+Project 2:  RSA encryption
+
+Instruction to run this project:
+
+1. type "make" to compile all the .java files
+
+2. type "java RSAGenKey <number>" or "java RSAGenKey <number> <number> <number>" to run RSAGenKey
+
+3. type "java RSAEncrypt test.txt pub_key.txt" to run RSAEncrypt
+
+4. type "java RSADecrypt test.enc pri_key.txt" to run RSADecrypt
